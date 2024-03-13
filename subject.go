@@ -8,22 +8,30 @@ import (
 )
 
 type Subject struct {
-	Value string
+	Body string
+}
+
+func (s Subject) toString() string {
+	if s.Body == "" {
+		return "unknown"
+
+	}
+	return s.Body
 }
 
 func createSubject(subjectStack *[]Subject) {
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print(string(ColorPurple), STARLINE+"Enter the value for the new subject:\n")
+	fmt.Print(string(ColorSubject), STARLINE+"Enter the Body for the new subject:\n")
 	input, _ := reader.ReadString('\n')
 	input = strings.Replace(input, "\n", "", -1)
 
-	*subjectStack = append(*subjectStack, Subject{Value: input})
+	*subjectStack = append(*subjectStack, Subject{Body: input})
 }
 
 func listSubjects(subjectStack *[]Subject) {
-	fmt.Println(string(ColorPurple), STARLINE+"Subjects:")
+	fmt.Print(string(ColorSubject), STARLINE+"Subjects:\n")
 	for _, subject := range *subjectStack {
-		fmt.Println(string(ColorPurple), subject.Value)
+		fmt.Println(string(ColorSubject), subject.Body)
 	}
 }
