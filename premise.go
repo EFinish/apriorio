@@ -49,7 +49,7 @@ type Premise struct {
 	PredicateQualifier PredicateQualifier
 }
 
-func createPremise(subjectStack *[]Subject, predicateStack *[]Predicate) {
+func createPremise(subjectStack *[]Subject, predicateStack *[]Predicate, premiseStack *[]Premise) {
 	subjectOptions := make([]string, len(*subjectStack))
 
 	for i, subject := range *subjectStack {
@@ -168,4 +168,13 @@ func createPremise(subjectStack *[]Subject, predicateStack *[]Predicate) {
 
 	fmt.Printf("You chose %q\n", selectedPredicateQualifier.toString())
 	fmt.Printf("Premise: %s %s : %s %s\n", selectedSubjectQuantifier.toString(), selectedSubject.toString(), selectedPredicateQualifier.toString(), selectedPredicate.toString())
+
+	*premiseStack = append(*premiseStack, Premise{Subject: selectedSubject, SubjectQuantifier: selectedSubjectQuantifier, Predicate: selectedPredicate, PredicateQualifier: selectedPredicateQualifier})
+}
+
+func listPremises(premiseStack *[]Premise) {
+	fmt.Print(string(ColorPremise), STARLINE+"Premises:\n")
+	for _, premise := range *premiseStack {
+		fmt.Printf("%s %s : %s %s\n", premise.SubjectQuantifier.toString(), premise.Subject.toString(), premise.PredicateQualifier.toString(), premise.Predicate.toString())
+	}
 }

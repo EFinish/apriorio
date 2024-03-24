@@ -31,13 +31,13 @@ const (
 	ColorSubject   = ColorRed
 	ColorPredicate = ColorGreen
 	// ColorYellow = "\033[33m"
-	// ColorBlue   = "\033[34m"
+	ColorPremise = ColorBlue
 	// ColorPurple = "\033[35m"
 	// ColorCyan   = "\033[36m"
 	// ColorWhite  = "\033[37m"
 )
 
-func initializeStacks() (subjectStack *[]Subject, predicateStack *[]Predicate) {
+func initializeStacks() (subjectStack *[]Subject, predicateStack *[]Predicate, premiseStack *[]Premise) {
 	subjectStack = &[]Subject{
 		{Body: "the ball"},
 		{Body: "the sky"},
@@ -45,12 +45,13 @@ func initializeStacks() (subjectStack *[]Subject, predicateStack *[]Predicate) {
 	predicateStack = &[]Predicate{
 		{Body: "is red"},
 	}
-	return subjectStack, predicateStack
+	premiseStack = &[]Premise{}
+	return subjectStack, predicateStack, premiseStack
 
 }
 
 func main() {
-	subjectStack, predicateStack := initializeStacks()
+	subjectStack, predicateStack, premiseStack := initializeStacks()
 
 	for {
 		templates := &promptui.SelectTemplates{
@@ -73,12 +74,13 @@ func main() {
 
 		switch result {
 		case COMMAND_CREATE_PREMISE:
-			createPremise(subjectStack, predicateStack)
+			createPremise(subjectStack, predicateStack, premiseStack)
 		case COMMAND_CREATE_PREDICATE:
 			createPredicate(predicateStack)
 		case COMMAND_CREATE_SUBJECT:
 			createSubject(subjectStack)
 		case COMMAND_LIST_PREMISES:
+			listPremises(premiseStack)
 		case COMMAND_LIST_PREDICATES:
 			listPredicates(predicateStack)
 		case COMMAND_LIST_SUBJECTS:
