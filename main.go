@@ -8,13 +8,15 @@ import (
 )
 
 const (
-	COMMAND_CREATE_PREMISE   = "create premise"
-	COMMAND_CREATE_PREDICATE = "create predicate"
-	COMMAND_CREATE_SUBJECT   = "create subject"
-	COMMAND_LIST_PREMISES    = "list premises"
-	COMMAND_LIST_PREDICATES  = "list predicates"
-	COMMAND_LIST_SUBJECTS    = "list subjects"
-	COMMAND_EXIT             = "exit"
+	COMMAND_CREATE_PROPOSITION = "create proposition"
+	COMMAND_CREATE_PREMISE     = "create premise"
+	COMMAND_CREATE_PREDICATE   = "create predicate"
+	COMMAND_CREATE_SUBJECT     = "create subject"
+	COMMAND_LIST_PROPOSITIONS  = "list propositions"
+	COMMAND_LIST_PREMISES      = "list premises"
+	COMMAND_LIST_PREDICATES    = "list predicates"
+	COMMAND_LIST_SUBJECTS      = "list subjects"
+	COMMAND_EXIT               = "exit"
 
 	STARLINE = "**********\n"
 
@@ -28,16 +30,16 @@ const (
 	ColorWhite  = "\033[37m"
 
 	// ColorReset  = "\033[0m"
-	ColorSubject   = ColorRed
-	ColorPredicate = ColorGreen
-	// ColorYellow = "\033[33m"
-	ColorPremise = ColorBlue
+	ColorSubject     = ColorRed
+	ColorPredicate   = ColorGreen
+	ColorProposition = ColorYellow
+	ColorPremise     = ColorBlue
 	// ColorPurple = "\033[35m"
 	// ColorCyan   = "\033[36m"
 	// ColorWhite  = "\033[37m"
 )
 
-func initializeStacks() (subjectStack *[]Subject, predicateStack *[]Predicate, premiseStack *[]Premise) {
+func initializeStacks() (subjectStack *[]Subject, predicateStack *[]Predicate, premiseStack *[]Premise, propositionStack *[]Proposition) {
 	subjectStack = &[]Subject{
 		{Body: "the ball"},
 		{Body: "the sky"},
@@ -46,12 +48,13 @@ func initializeStacks() (subjectStack *[]Subject, predicateStack *[]Predicate, p
 		{Body: "is red"},
 	}
 	premiseStack = &[]Premise{}
-	return subjectStack, predicateStack, premiseStack
+	propositionStack = &[]Proposition{}
+	return subjectStack, predicateStack, premiseStack, propositionStack
 
 }
 
 func main() {
-	subjectStack, predicateStack, premiseStack := initializeStacks()
+	subjectStack, predicateStack, premiseStack, proposition := initializeStacks()
 
 	for {
 		templates := &promptui.SelectTemplates{
@@ -61,7 +64,7 @@ func main() {
 
 		prompt := promptui.Select{
 			Label:     "Select one of the following commands:",
-			Items:     []string{COMMAND_CREATE_PREMISE, COMMAND_CREATE_PREDICATE, COMMAND_CREATE_SUBJECT, COMMAND_LIST_PREMISES, COMMAND_LIST_PREDICATES, COMMAND_LIST_SUBJECTS, COMMAND_EXIT},
+			Items:     []string{COMMAND_CREATE_PROPOSITION, COMMAND_CREATE_PREMISE, COMMAND_CREATE_PREDICATE, COMMAND_CREATE_SUBJECT, COMMAND_LIST_PROPOSITIONS, COMMAND_LIST_PREMISES, COMMAND_LIST_PREDICATES, COMMAND_LIST_SUBJECTS, COMMAND_EXIT},
 			Templates: templates,
 		}
 
@@ -79,6 +82,8 @@ func main() {
 			createPredicate(predicateStack)
 		case COMMAND_CREATE_SUBJECT:
 			createSubject(subjectStack)
+		case COMMAND_LIST_PROPOSITIONS:
+			listPropositions(proposition)
 		case COMMAND_LIST_PREMISES:
 			listPremises(premiseStack)
 		case COMMAND_LIST_PREDICATES:
