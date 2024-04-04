@@ -114,7 +114,7 @@ func findPropositionInSlice(str string, propositionStack *PropositionSlice) *Pro
 
 }
 
-func selectPremise(premiseStack *PremiseSlice, alreadyChosenPremises *PremiseSlice) {
+func selectPremiseForTerm(premiseStack *PremiseSlice, alreadyChosenPremises *PremiseSlice) {
 	templates := &promptui.SelectTemplates{
 		Active:   templateGenericActive,
 		Inactive: templateGenericInactive,
@@ -156,7 +156,7 @@ func selectPremise(premiseStack *PremiseSlice, alreadyChosenPremises *PremiseSli
 	*alreadyChosenPremises = append(*alreadyChosenPremises, *premiseToAdd)
 }
 
-func selectProposition(propositionStack *PropositionSlice, alreadyChosenPropositions *PropositionSlice) {
+func selectPropositionForTerm(propositionStack *PropositionSlice, alreadyChosenPropositions *PropositionSlice) {
 	templates := &promptui.SelectTemplates{
 		Active:   templatePropositionActive,
 		Inactive: templatePropositionInactive,
@@ -192,7 +192,7 @@ func selectProposition(propositionStack *PropositionSlice, alreadyChosenProposit
 	*alreadyChosenPropositions = append(*alreadyChosenPropositions, *propositionToAdd)
 }
 
-func hasPremiseToAdd(premiseStack *PremiseSlice, alreadyChosenPremises *PremiseSlice) bool {
+func hasPremiseToAddAsTerm(premiseStack *PremiseSlice, alreadyChosenPremises *PremiseSlice) bool {
 	premiseOptions := []string{}
 
 	for _, premise := range *premiseStack {
@@ -206,7 +206,7 @@ func hasPremiseToAdd(premiseStack *PremiseSlice, alreadyChosenPremises *PremiseS
 	return len(premiseOptions) > 0
 }
 
-func hasPropositionToAdd(propositionStack *PropositionSlice, alreadyChosenPropositions *PropositionSlice) bool {
+func hasPropositionToAddAsTerm(propositionStack *PropositionSlice, alreadyChosenPropositions *PropositionSlice) bool {
 	propositionOptions := []string{}
 
 	for _, proposition := range *propositionStack {
@@ -220,7 +220,8 @@ func hasPropositionToAdd(propositionStack *PropositionSlice, alreadyChosenPropos
 	return len(propositionOptions) > 0
 }
 
-func userSelectPremiseOrProposition(premiseStack *PremiseSlice, propositionStack *PropositionSlice, selectedPremises *PremiseSlice, selectedPropositions *PropositionSlice, selectedPropositionType *PropositionType) {
+func userSelectTerm(premiseStack *PremiseSlice, propositionStack *PropositionSlice, selectedPremises *PremiseSlice, selectedPropositions *PropositionSlice, selectedPropositionType *PropositionType) {
+	// TODO return errors too and handle errors in parent function
 	var promptOptions []string
 
 	templateTypeOfTerm := &promptui.SelectTemplates{
@@ -228,10 +229,10 @@ func userSelectPremiseOrProposition(premiseStack *PremiseSlice, propositionStack
 		Inactive: templateGenericInactive,
 	}
 
-	if hasPremiseToAdd(premiseStack, selectedPremises) {
+	if hasPremiseToAddAsTerm(premiseStack, selectedPremises) {
 		promptOptions = append(promptOptions, "Premise")
 	}
-	if hasPropositionToAdd(propositionStack, selectedPropositions) {
+	if hasPropositionToAddAsTerm(propositionStack, selectedPropositions) {
 		promptOptions = append(promptOptions, "Proposition")
 	}
 
@@ -250,9 +251,9 @@ func userSelectPremiseOrProposition(premiseStack *PremiseSlice, propositionStack
 
 	switch input {
 	case "Premise":
-		selectPremise(premiseStack, selectedPremises)
+		selectPremiseForTerm(premiseStack, selectedPremises)
 	case "Proposition":
-		selectProposition(propositionStack, selectedPropositions)
+		selectPropositionForTerm(propositionStack, selectedPropositions)
 	}
 
 	fmt.Printf("Selected Proposition Type: %v\n", selectedPropositionType.toString())
@@ -272,7 +273,7 @@ func createProposition(premiseStack *PremiseSlice, propositionStack *Proposition
 	selectedPropositions := PropositionSlice{}
 	hasAtLeastTwoTerms := len(*premiseStack)+len(*propositionStack) >= 2
 
-	if (!hasPremiseToAdd(premiseStack, &selectedPremises) && !hasPropositionToAdd(propositionStack, &selectedPropositions)) || !hasAtLeastTwoTerms {
+	if (!hasPremiseToAddAsTerm(premiseStack, &selectedPremises) && !hasPropositionToAddAsTerm(propositionStack, &selectedPropositions)) || !hasAtLeastTwoTerms {
 		fmt.Printf("There are not enough possible terms (premises or other propositions) in order to create a proposition. Create more premises or propositions and try again.\n")
 		return
 	}
@@ -317,12 +318,12 @@ func createProposition(premiseStack *PremiseSlice, propositionStack *Proposition
 	fmt.Printf("You chose %q\n", selectedPropositionType.toString())
 
 	for i := 0; i < 2; i++ {
-		userSelectPremiseOrProposition(premiseStack, propositionStack, &selectedPremises, &selectedPropositions, &selectedPropositionType)
+		userSelectTerm(premiseStack, propositionStack, &selectedPremises, &selectedPropositions, &selectedPropositionType)
 	}
 
 	userIsDone := false
 
-	for !userIsDone && (hasPremiseToAdd(premiseStack, &selectedPremises) || hasPropositionToAdd(propositionStack, &selectedPropositions)) {
+	for !userIsDone && (hasPremiseToAddAsTerm(premiseStack, &selectedPremises) || hasPropositionToAddAsTerm(propositionStack, &selectedPropositions)) {
 		templates := &promptui.SelectTemplates{
 			Active:   templateGenericActive,
 			Inactive: templateGenericInactive,
@@ -346,7 +347,7 @@ func createProposition(premiseStack *PremiseSlice, propositionStack *Proposition
 			break
 		}
 
-		userSelectPremiseOrProposition(premiseStack, propositionStack, &selectedPremises, &selectedPropositions, &selectedPropositionType)
+		userSelectTerm(premiseStack, propositionStack, &selectedPremises, &selectedPropositions, &selectedPropositionType)
 	}
 
 	propositionToAdd := Proposition{Type: selectedPropositionType, SubPremises: &selectedPremises, SubPropositions: &selectedPropositions}
