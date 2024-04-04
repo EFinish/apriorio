@@ -30,36 +30,43 @@ const (
 	ColorWhite  = "\033[37m"
 
 	// ColorReset  = "\033[0m"
-	ColorSubject     = ColorRed
-	ColorPredicate   = ColorGreen
-	ColorProposition = ColorYellow
-	ColorPremise     = ColorBlue
+	ColorError       = ColorRed
+	ColorSubject     = ColorGreen
+	ColorPredicate   = ColorYellow
+	ColorProposition = ColorBlue
+	ColorPremise     = ColorPurple
 	// ColorPurple = "\033[35m"
 	// ColorCyan   = "\033[36m"
 	// ColorWhite  = "\033[37m"
 )
 
-func initializeStacks() (subjectStack *[]Subject, predicateStack *[]Predicate, premiseStack *[]Premise, propositionStack *[]Proposition) {
-	subjectStack = &[]Subject{
+func initializeStacks() (subjectStack SubjectSlice, predicateStack PredicateSlice, premiseStack PremiseSlice, propositionStack PropositionSlice) {
+	subjectStack = SubjectSlice{
 		{Body: "the ball"},
 		{Body: "the sky"},
 	}
-	predicateStack = &[]Predicate{
+	predicateStack = PredicateSlice{
 		{Body: "is red"},
+		{Body: "is blue"},
 	}
-	premiseStack = &[]Premise{}
-	propositionStack = &[]Proposition{}
+	premiseStack = PremiseSlice{
+		{Subject: subjectStack[0], Predicate: predicateStack[0], SubjectQuantifier: ALL, PredicateQualifier: IS},
+		{Subject: subjectStack[0], Predicate: predicateStack[1], SubjectQuantifier: ALL, PredicateQualifier: IS},
+	}
+	propositionStack = PropositionSlice{
+		{Type: OR, SubPremises: &PremiseSlice{premiseStack[0], premiseStack[1]}, SubPropositions: &PropositionSlice{}},
+	}
 	return subjectStack, predicateStack, premiseStack, propositionStack
 
 }
 
 func main() {
-	subjectStack, predicateStack, premiseStack, proposition := initializeStacks()
+	subjectStack, predicateStack, premiseStack, propositionStack := initializeStacks()
 
 	for {
 		templates := &promptui.SelectTemplates{
-			Active:   `> {{ . | faint | bold }}`,
-			Inactive: `{{ . | faint }}`,
+			Active:   templateGenericActive,
+			Inactive: templateGenericInactive,
 		}
 
 		prompt := promptui.Select{
@@ -76,20 +83,22 @@ func main() {
 		}
 
 		switch result {
+		case COMMAND_CREATE_PROPOSITION:
+			createProposition(&premiseStack, &propositionStack)
 		case COMMAND_CREATE_PREMISE:
-			createPremise(subjectStack, predicateStack, premiseStack)
+			createPremise(&subjectStack, &predicateStack, &premiseStack)
 		case COMMAND_CREATE_PREDICATE:
-			createPredicate(predicateStack)
+			createPredicate(&predicateStack)
 		case COMMAND_CREATE_SUBJECT:
-			createSubject(subjectStack)
+			createSubject(&subjectStack)
 		case COMMAND_LIST_PROPOSITIONS:
-			listPropositions(proposition)
+			listPropositions(&propositionStack)
 		case COMMAND_LIST_PREMISES:
-			listPremises(premiseStack)
+			listPremises(&premiseStack)
 		case COMMAND_LIST_PREDICATES:
-			listPredicates(predicateStack)
+			listPredicates(&predicateStack)
 		case COMMAND_LIST_SUBJECTS:
-			listSubjects(subjectStack)
+			listSubjects(&subjectStack)
 		case COMMAND_EXIT:
 			os.Exit(0)
 		default:

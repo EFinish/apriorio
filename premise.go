@@ -18,11 +18,11 @@ const (
 func (s SubjectQuantifier) toString() string {
 	switch s {
 	case ALL:
-		return "ALL"
+		return "ALL OF"
 	case SOME:
-		return "SOME"
+		return "SOME OF"
 	case NONE:
-		return "NONE"
+		return "NONE OF"
 	}
 	return "unknown"
 }
@@ -49,11 +49,23 @@ type Premise struct {
 	PredicateQualifier PredicateQualifier
 }
 
+type PremiseSlice []Premise
+
 func (p Premise) toString() string {
-	return fmt.Sprintf("%s %s : %s %s\n", p.SubjectQuantifier.toString(), p.Subject.toString(), p.PredicateQualifier.toString(), p.Predicate.toString())
+	return fmt.Sprintf("%s %s : %s %s", p.SubjectQuantifier.toString(), p.Subject.toString(), p.PredicateQualifier.toString(), p.Predicate.toString())
 }
 
-func createPremise(subjectStack *[]Subject, predicateStack *[]Predicate, premiseStack *[]Premise) {
+func (ps PremiseSlice) checkIfPremiseExists(premise Premise) bool {
+	for _, p := range ps {
+		if p.Subject.Body == premise.Subject.Body && p.Predicate.Body == premise.Predicate.Body {
+			return true
+		}
+	}
+	return false
+}
+
+func createPremise(subjectStack *SubjectSlice, predicateStack *PredicateSlice, premiseStack *PremiseSlice) {
+	fmt.Print(string(ColorPremise))
 	subjectOptions := make([]string, len(*subjectStack))
 
 	for i, subject := range *subjectStack {
@@ -61,8 +73,8 @@ func createPremise(subjectStack *[]Subject, predicateStack *[]Predicate, premise
 	}
 
 	subjectTemplates := &promptui.SelectTemplates{
-		Active:   `> {{ .Body | faint | bold }}`,
-		Inactive: `{{ .Body | faint }}`,
+		Active:   templateSubjectActive,
+		Inactive: templateSubjectInactive,
 	}
 
 	promptSubject := promptui.Select{
@@ -86,8 +98,8 @@ func createPremise(subjectStack *[]Subject, predicateStack *[]Predicate, premise
 	SubjectQuantifierOptions := []string{ALL.toString(), SOME.toString(), NONE.toString()}
 
 	templates := &promptui.SelectTemplates{
-		Active:   `> {{ . | faint | bold }}`,
-		Inactive: `{{ . | faint }}`,
+		Active:   templateGenericActive,
+		Inactive: templateGenericInactive,
 	}
 
 	promptSubjectQuantifier := promptui.Select{
@@ -124,8 +136,8 @@ func createPremise(subjectStack *[]Subject, predicateStack *[]Predicate, premise
 	}
 
 	predicateTemplates := &promptui.SelectTemplates{
-		Active:   `> {{ .Body | faint | bold }}`,
-		Inactive: `{{ .Body | faint }}`,
+		Active:   templatePredicateActive,
+		Inactive: templatePredicateInactive,
 	}
 
 	promptPedicate := promptui.Select{
@@ -173,12 +185,17 @@ func createPremise(subjectStack *[]Subject, predicateStack *[]Predicate, premise
 	fmt.Printf("You chose %q\n", selectedPredicateQualifier.toString())
 	fmt.Printf("Premise: %s %s : %s %s\n", selectedSubjectQuantifier.toString(), selectedSubject.toString(), selectedPredicateQualifier.toString(), selectedPredicate.toString())
 
+	if premiseStack.checkIfPremiseExists(Premise{Subject: selectedSubject, SubjectQuantifier: selectedSubjectQuantifier, Predicate: selectedPredicate, PredicateQualifier: selectedPredicateQualifier}) {
+		fmt.Println(string(ColorError), "Premise already exists")
+		return
+	}
+
 	*premiseStack = append(*premiseStack, Premise{Subject: selectedSubject, SubjectQuantifier: selectedSubjectQuantifier, Predicate: selectedPredicate, PredicateQualifier: selectedPredicateQualifier})
 }
 
-func listPremises(premiseStack *[]Premise) {
+func listPremises(premiseStack *PremiseSlice) {
 	fmt.Print(string(ColorPremise), STARLINE+"Premises:\n")
 	for _, premise := range *premiseStack {
-		fmt.Printf("%s", premise.toString())
+		fmt.Println(string(ColorPremise), premise.toString())
 	}
 }
